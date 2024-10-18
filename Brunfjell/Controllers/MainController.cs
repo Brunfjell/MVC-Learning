@@ -3,7 +3,7 @@ using System.Text.Encodings.Web;
 
 namespace Brunfjell.Controllers
 {
-    public class HelloWorld : Controller
+    public class MainController : Controller
     {
         public IActionResult Index()
         {

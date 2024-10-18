@@ -20,9 +20,38 @@ namespace Brunfjell.Controllers
         }
 
         // GET: Galleries
-        public async Task<IActionResult> Index()
+        // GET: Movies
+        public async Task<IActionResult> Index(string genre, string searchString)
         {
-            return View(await _context.Gallery.ToListAsync());
+            if (_context.Gallery == null)
+            {
+                return Problem("Entity set 'MvcMovieContext.Movie'  is null.");
+            }
+
+            // Use LINQ to get list of genres.
+            IQueryable<string> genreQuery = from m in _context.Gallery
+                                            orderby m.Genre
+                                            select m.Genre;
+            var movies = from m in _context.Gallery
+                         select m;
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                movies = movies.Where(s => s.Title!.ToUpper().Contains(searchString.ToUpper()));
+            }
+
+            if (!string.IsNullOrEmpty(genre))
+            {
+                movies = movies.Where(x => x.Genre == genre);
+            }
+
+            var movieGenreVM = new GenreViewModel
+            {
+                Genres = new SelectList(await genreQuery.Distinct().ToListAsync()),
+                Movies = await movies.ToListAsync()
+            };
+
+            return View(movieGenreVM);
         }
 
         // GET: Galleries/Details/5
@@ -54,7 +83,7 @@ namespace Brunfjell.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,ReleaseDate,Genre,Price")] Gallery gallery)
+        public async Task<IActionResult> Create([Bind("Id,Title,ReleaseDate,Genre,Price,Rating")] Gallery gallery)
         {
             if (ModelState.IsValid)
             {

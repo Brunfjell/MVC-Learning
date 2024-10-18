@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Brunfjell.Data;
+using Brunfjell.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<BrunfjellContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("BrunfjellContext") ?? throw new InvalidOperationException("Connection string 'BrunfjellContext' not found.")));
@@ -9,6 +11,13 @@ builder.Services.AddDbContext<BrunfjellContext>(options =>
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    SeedData.Initialize(services);
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -27,6 +36,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=HelloWorld}/{action=Index}/{id?}");
+    pattern: "{controller=Main}/{action=Index}/{id?}");
 
 app.Run();
